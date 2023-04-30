@@ -2,6 +2,7 @@
 set -e
 BASE_PATH=${HOME}
 REPO=${HOME}/text-generation-webui
+CONDA_CMD="conda run -n textgen"
 
 # update and install system stuff
 sudo apt-get update && sudo apt-get install -y ansible sysstat build-essential
@@ -10,31 +11,31 @@ sudo apt-get update && sudo apt-get install -y ansible sysstat build-essential
 conda create --yes -n textgen python=3.10.9
 
 # TODO -> conda run -n textgen bash <script part 2>
-
-conda activate textgen
-pip3 install torch torchvision torchaudio
+${CONDA_CMD} pip3 install torch torchvision torchaudio
 
 # clone repo and install requirements
 git clone https://github.com/oobabooga/text-generation-webui ${REPO} && cd ${REPO}
-pip install -r requirements.txt
+${CONDA_CMD} pip install -r requirements.txt
 
 # in background, download model
-cd ${REPO} && python download-model.py anon8231489123/vicuna-13b-GPTQ-4bit-128g &
+cd ${REPO} 
+${CONDA_CMD} python download-model.py anon8231489123/vicuna-13b-GPTQ-4bit-128g &
 
 # quantization support
 #conda activate textgen
-conda install --yes -c conda-forge cudatoolkit-dev
+${CONDA_CMD} conda install --yes -c conda-forge cudatoolkit-dev
 
 # GPTQ extension
 mkdir -p ${REPO}/repositories && cd ${REPO}/repositories
 git clone https://github.com/oobabooga/GPTQ-for-LLaMa.git -b cuda
-cd GPTQ-for-LLaMa && python setup_cuda.py install
+cd GPTQ-for-LLaMa 
+${CONDA_CMD} python setup_cuda.py install
 
 # LoRA for GPTQ extension
 mkdir -p ${REPO}/repositories && cd ${REPO}/repositories
 git clone https://github.com/johnsmith0031/alpaca_lora_4bit
 
-pip install git+https://github.com/sterlind/GPTQ-for-LLaMa.git@lora_4bit
+${CONDA_CMD} pip install git+https://github.com/sterlind/GPTQ-for-LLaMa.git@lora_4bit
 
 # wait for background process to complete
 wait
