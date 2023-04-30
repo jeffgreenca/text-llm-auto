@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -e
+set -x
 BASE_PATH=${HOME}
 REPO=${HOME}/text-generation-webui
 CONDA_CMD="conda run -n textgen"
 
 # update and install system stuff
-sudo apt-get update && sudo apt-get install -y ansible sysstat build-essential
+sudo apt-get update && sudo apt-get install -y sysstat build-essential
 
 # create conda env
 conda create --yes -n textgen python=3.10.9
