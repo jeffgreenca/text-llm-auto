@@ -1,45 +1,43 @@
-#!/usr/bin/bash
-# set thing to fail out if command non-zero exit code
-# TODO check this
-BASE_PATH="$(HOME)"
+#!/usr/bin/env bash
+set -e
+BASE_PATH=${HOME}
+REPO=${HOME}/text-generation-webui
 
 # update and install system stuff
-sudo apt update
-sudo apt install sysstat build-essential -y
+sudo apt-get update && sudo apt-get install -y ansible sysstat build-essential
 
-# verify conda is available, create conda environment
+# create conda env
+conda create --yes -n textgen python=3.10.9
 
-# TODO what command to auto-accept this
-conda create -n textgen python=3.10.9
+# TODO -> conda run -n textgen bash <script part 2>
+
 conda activate textgen
-
 pip3 install torch torchvision torchaudio
 
-cd ${BASE_PATH}
-git clone https://github.com/oobabooga/text-generation-webui
-cd text-generation-webui
+# clone repo and install requirements
+git clone https://github.com/oobabooga/text-generation-webui ${REPO} && cd ${REPO}
 pip install -r requirements.txt
 
 # in background, download model
-# TODO verify downloads in the right location, suggest using variable for model for testing use smaller model
-python download-model.py anon8231489123/vicuna-13b-GPTQ-4bit-128g &
+cd ${REPO} && python download-model.py anon8231489123/vicuna-13b-GPTQ-4bit-128g &
 
-# install prereqs required for LoRa on quantized
+# quantization support
 #conda activate textgen
-# TODO - what command to auto accept this
-conda install -c conda-forge cudatoolkit-dev
+conda install --yes -c conda-forge cudatoolkit-dev
 
-# install GPTQ extension
-mkdir repositories
-cd repositories
+# GPTQ extension
+mkdir -p ${REPO}/repositories && cd ${REPO}/repositories
 git clone https://github.com/oobabooga/GPTQ-for-LLaMa.git -b cuda
-cd GPTQ-for-LLaMa
-python setup_cuda.py install
+cd GPTQ-for-LLaMa && python setup_cuda.py install
 
-# install LoRA for GPTQ
-cd text-generation-webui/repositories
+# LoRA for GPTQ extension
+mkdir -p ${REPO}/repositories && cd ${REPO}/repositories
 git clone https://github.com/johnsmith0031/alpaca_lora_4bit
+
 pip install git+https://github.com/sterlind/GPTQ-for-LLaMa.git@lora_4bit
+
+# wait for background process to complete
+wait
 
 # Done - can start server as background process using monkey patch?
 # python server.py --monkey-patch
