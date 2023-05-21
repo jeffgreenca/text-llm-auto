@@ -3,6 +3,7 @@ set -e
 set -x
 BASE_PATH=${HOME}
 REPO=${HOME}/text-generation-webui
+DEFAULT_MODEL=${DEFAULT_MODEL:-"TheBloke/vicuna-13B-1.1-GPTQ-4bit-128g"}
 CONDA_CMD="conda run -n textgen"
 
 # update and install system stuff
@@ -20,7 +21,7 @@ ${CONDA_CMD} pip install -r requirements.txt
 
 # in background, download model
 cd ${REPO} 
-${CONDA_CMD} python download-model.py anon8231489123/vicuna-13b-GPTQ-4bit-128g &
+${CONDA_CMD} python download-model.py ${DEFAULT_MODEL} &
 
 # quantization support
 #conda activate textgen
